@@ -40,25 +40,86 @@ def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
         os.makedirs(output_dir)
     if xyzfile:
         with open(xyzfile, 'r') as fin:
-            xyzstring = xyzfile.read()
+            xyzstring = fin.read()
+    xyzstring += '\n\n'
     xyzinputfile = output_dir + "{}_input.xyz".format(jobname)
     log("creating xyz geometry input file")
     with open(xyzinputfile, 'w') as fout:
         fout.write(xyzstring)
+    orca_input += '\n\n'
     jobinputfile = output_dir + "{}.in".format(jobname)
     log("creating job file")
     with open(jobinputfile, 'w') as fout:
         fout.write(orca_input)
     joboutputfile = output_dir + "{}.out".format(jobname)
-    log("running job")
-    #os.system("{} {} > {}&".format(orca_path, jobinputfile, joboutputfile))
+    log("running job (this could take a while)")
+    previous_wd = os.getcwd()
+    os.chdir(output_dir)
+    os.system("{} {} > {}".format(orca_path, jobinputfile, joboutputfile))
+    log("running of job finished")
+    log("changing back current working directory")
+    os.chdir(previous_wd)
+    return ORCAReporter(joboutputfile)
 
 
 
-def run_orca_opt_freq(xyzfile=None, xyzstring=None, jobname="job"):
+def run_orca_opt_freq(xyzfile=None, xyzstring=None, jobname="job", method=None, basis_set=None):
+    assert(method is not None)
+    if basis_set is None:
+        if method not in ['AM1', 'PM3', 'MNDO', 'INDO']:
+            log('warning: no basis set specified!')
+        basis_set = ''
     orca_input = """
-!AM1 opt freq
+!{} {} opt freq
 
-*xyzfile 1 0 {}
-    """.format("{}_input.xyz".format(jobname)).strip()
+*xyzfile 0 1 {}
+    """.format(basis_set, method, "{}_input.xyz".format(jobname)).strip()
     return run_orca(xyzfile=xyzfile,xyzstring=xyzstring,jobname=jobname,orca_input=orca_input)
+
+
+
+
+
+class ORCAReporter(object):
+    def __init__(self, joboutputfile):
+        self.joboutputfile = joboutputfile
+        self._output = None
+
+    def output_lines(self):
+        lst = []
+        for lne in self.output().split('\n'):
+            lst.append(lne)
+        return lst
+
+    def output(self):
+        if self._output is not None:
+            return self._output
+        else:
+            self._output = None
+            with open(self.joboutputfile, 'r') as fin:
+                self._output = fin.read()
+        assert self._output is not None, 'error reading in file {}'.format(self.joboutputfile)
+        return self._output
+
+    def final_gibbs_energy(self):
+            for lne in self.output_lines():
+                lne = lne.strip()
+                if lne.startswith("Final Gibbs free enthalpy"):
+                    return lne.split(' ')[-2]
+            print(self.joboutputfile)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
