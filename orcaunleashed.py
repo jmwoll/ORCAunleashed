@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 
 _log_output = True
 def log(msg):
@@ -26,9 +27,14 @@ orca_path = "orca"
 output_dir = os.path.dirname(os.path.realpath(__file__))+os.sep+"output"+os.sep
 def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
     if jobname is None:
-        jobname = "job"
+        jobname_suggestion = "job_"+str(time.strftime("%d_%m_%Y"))
+        jobname = jobname_suggestion
+        jobname_counter = 2
+        while os.path.isfile("{}.in".format(jobname)):
+            jobname = jobname_suggestion + str(jobname_counter)
+            jobname_coutner += 1
     assert(orca_input is not None)
-    assert(xyzfile is not None or xyzstring is not None)
+    explicit_xyz = (xyzfile is not None or xyzstring is not None)
     global orca_path
     global output_dir
     log("orca executable path is {}".format(orca_path))
@@ -38,14 +44,24 @@ def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
     if not os.path.exists(output_dir):
         log("creating output directory")
         os.makedirs(output_dir)
+    log("cleaning output directory from previous job files")
+    previous_wd = os.getcwd()
+    os.chdir(output_dir)
+    os.system("rm job*")
+    os.chdir(previous_wd)
     if xyzfile:
         with open(xyzfile, 'r') as fin:
             xyzstring = fin.read()
-    xyzstring += '\n\n'
-    xyzinputfile = output_dir + "{}_input.xyz".format(jobname)
-    log("creating xyz geometry input file")
-    with open(xyzinputfile, 'w') as fout:
-        fout.write(xyzstring)
+    if explicit_xyz:
+        xyzstring += '\n\n'
+        xyzinputfile = output_dir + "guess.xyz"
+        log("creating xyz geometry input file")
+        with open(xyzinputfile, 'w') as fout:
+            fout.write(xyzstring)
+    else:
+        log("neither xyz string nor xyz file specified!")
+        log("assuming xyz coordinates are explicitly specified")
+        log("in the orca input file ...")
     orca_input += '\n\n'
     jobinputfile = output_dir + "{}.in".format(jobname)
     log("creating job file")
@@ -62,28 +78,11 @@ def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
     return ORCAReporter(joboutputfile)
 
 
-
-def run_orca_opt_freq(xyzfile=None, xyzstring=None, jobname="job", method=None, basis_set=None):
-    assert(method is not None)
-    if basis_set is None:
-        if method not in ['AM1', 'PM3', 'MNDO', 'INDO']:
-            log('warning: no basis set specified!')
-        basis_set = ''
-    orca_input = """
-!{} {} opt freq
-
-*xyzfile 0 1 {}
-    """.format(basis_set, method, "{}_input.xyz".format(jobname)).strip()
-    return run_orca(xyzfile=xyzfile,xyzstring=xyzstring,jobname=jobname,orca_input=orca_input)
-
-
-
-
-
 class ORCAReporter(object):
     def __init__(self, joboutputfile):
         self.joboutputfile = joboutputfile
         self._output = None
+        self._trajoutput = None
 
     def output_lines(self):
         lst = []
@@ -101,12 +100,13 @@ class ORCAReporter(object):
         assert self._output is not None, 'error reading in file {}'.format(self.joboutputfile)
         return self._output
 
-    def final_gibbs_energy(self):
-            for lne in self.output_lines():
-                lne = lne.strip()
-                if lne.startswith("Final Gibbs free enthalpy"):
-                    return lne.split(' ')[-2]
-            print(self.joboutputfile)
+
+
+
+
+
+
+
 
 
 
