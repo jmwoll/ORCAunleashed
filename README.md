@@ -8,3 +8,14 @@ print("\n".join(reporter.output_lines()[-3:-1]))
 #     ****ORCA TERMINATED NORMALLY****
 # TOTAL RUN TIME: 0 days 0 hours 0 minutes 15 seconds 0 msec
 ```
+
+For convenience, a single xyzfile can be specified
+```
+from ORCAunleashed import orca
+
+reporter = orca.run_orca(orca_input="!AM1 opt freq\n\n*xyzfile 0 1 guess.xyz",
+          xyzfile="path-to-xyzfile.xyz")
+print(reporter.output())
+# Prints out the whole outputfile to screen.
+```
+Note that the xyzfile can be referenced from the input file as "guess.xyz".
