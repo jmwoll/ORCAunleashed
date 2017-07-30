@@ -24,19 +24,21 @@ def log(msg):
         print(msg)
 
 orca_path = "orca"
-output_dir = os.path.dirname(os.path.realpath(__file__))+os.sep+"output"+os.sep
+output_root_dir = os.path.dirname(os.path.realpath(__file__))+os.sep+"output"+os.sep
 def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
+    global orca_path
+    global output_root_dir
     if jobname is None:
         jobname_suggestion = "job_"+str(time.strftime("%d_%m_%Y"))
         jobname = jobname_suggestion
         jobname_counter = 2
-        while os.path.isfile("{}.in".format(jobname)):
-            jobname = jobname_suggestion + str(jobname_counter)
-            jobname_coutner += 1
+        while os.path.exists(os.path.join(output_root_dir, jobname) + os.sep):
+            jobname = jobname_suggestion + "_j" + str(jobname_counter)
+            jobname_counter += 1
     assert(orca_input is not None)
     explicit_xyz = (xyzfile is not None or xyzstring is not None)
-    global orca_path
-    global output_dir
+
+    output_dir = os.path.join(output_root_dir, jobname) + os.sep
     log("orca executable path is {}".format(orca_path))
     if orca_path == "orca":
         log("assuming orca is on your path")
