@@ -1,7 +1,7 @@
 # Copyright (C) 2017  Jan Wollschläger <jmw.tau@gmail.com>
 # This file is part of ORCAunleashed.
 #
-# Tau is free software: you can redistribute it and/or modify
+# ORCAunleashed is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -79,6 +79,12 @@ def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
     os.chdir(previous_wd)
     return ORCAReporter(joboutputfile)
 
+
+def reporter_by_name(jobname):
+    global output_root_dir
+    flepath = os.path.join(os.path.join(output_root_dir, jobname), jobname+".out")
+    return ORCAReporter(flepath)
+    
 
 class ORCAReporter(object):
     def __init__(self, joboutputfile):
