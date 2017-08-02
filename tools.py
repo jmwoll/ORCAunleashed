@@ -21,17 +21,23 @@ import re
 # Two different labelling schemes are available:
 # *) the natural numbering 1H, 2H, 3H, ..., 1C, 2C, 3C, ...
 # *) the orca numbering 0H, 1H, 2H, 3C, 4C, 5O, 6C, ...
-def chemical_shift(reporter, label_type='natural'):
+def chemical_shifts(reporter, label_type='natural'):
     dct = { }
     key,val = None,None
-    lne_count = 0
+    #lne_count = 0
     for lne in reporter.output_lines():
-        lne_count += 1
+        #lne_count += 1
         lne = lne.strip()
-        print(lne_count)
-        if lne.startswith('Nucleus') and lne.endswith(' :'):
+        #print(lne_count)
+        if (lne.startswith('Nucleus') and lne.endswith(':')
+            and not lne.startswith('Nucleus:')):
             print(lne)
-            _,key,_ = re.compile('\s+').split(lne)
+            key = None
+            try:
+                _,key,_ = re.compile('\s+').split(lne)
+            except ValueError:
+                _,key = re.compile('\s+').split(lne)
+            assert(key is not None)
             key = key.replace(':','')
         if lne.startswith('Total') and 'iso=' in lne:
             _,val = lne.split('iso=')
