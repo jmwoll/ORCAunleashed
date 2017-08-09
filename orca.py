@@ -24,11 +24,13 @@ def log(msg):
         print(msg)
 
 orca_path = "orca"
-output_root_dir = os.path.dirname(os.path.realpath(__file__))+os.sep+"output"+os.sep
+default_output_root_dir = os.path.dirname(os.path.realpath(__file__))+os.sep+"output"+os.sep
 def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None,
-    overwrite=False):
+    overwrite=False, output_root_dir=None):
     global orca_path
-    global output_root_dir
+    global default_output_root_dir
+    if output_root_dir is None:
+        output_root_dir = default_output_root_dir
     if jobname is None:
         jobname_suggestion = "job_"+str(time.strftime("%d_%m_%Y"))
         jobname = jobname_suggestion
@@ -41,8 +43,9 @@ def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None,
 
     output_dir = os.path.join(output_root_dir, jobname) + os.sep
     if os.path.isdir(output_dir) and (not overwrite):
-        log("output directory {}. Doing nothing.".format(output_dir)
+        log("output directory {} already exists. Doing nothing.".format(output_dir)+
             " Use overwrite=True to overwrite")
+        return None
     log("orca executable path is {}".format(orca_path))
     if orca_path == "orca":
         log("assuming orca is on your path")
