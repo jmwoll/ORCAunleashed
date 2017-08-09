@@ -87,8 +87,10 @@ def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None,
     return ORCAReporter(joboutputfile)
 
 
-def reporter_by_name(jobname):
-    global output_root_dir
+def reporter_by_name(jobname, output_root_dir=None):
+    global default_output_root_dir
+    if output_root_dir is None:
+        output_root_dir = default_output_root_dir
     flepath = os.path.join(os.path.join(output_root_dir, jobname), jobname+".out")
     return ORCAReporter(flepath)
 
