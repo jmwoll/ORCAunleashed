@@ -25,7 +25,8 @@ def log(msg):
 
 orca_path = "orca"
 output_root_dir = os.path.dirname(os.path.realpath(__file__))+os.sep+"output"+os.sep
-def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
+def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None,
+    overwrite=False):
     global orca_path
     global output_root_dir
     if jobname is None:
@@ -39,6 +40,9 @@ def run_orca(xyzfile=None, xyzstring=None, jobname=None, orca_input=None):
     explicit_xyz = (xyzfile is not None or xyzstring is not None)
 
     output_dir = os.path.join(output_root_dir, jobname) + os.sep
+    if os.path.isdir(output_dir) and (not overwrite):
+        log("output directory {}. Doing nothing.".format(output_dir)
+            " Use overwrite=True to overwrite")
     log("orca executable path is {}".format(orca_path))
     if orca_path == "orca":
         log("assuming orca is on your path")
@@ -84,7 +88,7 @@ def reporter_by_name(jobname):
     global output_root_dir
     flepath = os.path.join(os.path.join(output_root_dir, jobname), jobname+".out")
     return ORCAReporter(flepath)
-    
+
 
 class ORCAReporter(object):
     def __init__(self, joboutputfile):
