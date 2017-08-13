@@ -16,6 +16,21 @@
 
 import re
 
+# Given an ORCAReporter, this function returns the total runtime of
+# the orca job in minutes.
+def run_time(reporter):
+    # e.g.
+    # TOTAL RUN TIME: 0 days 0 hours 0 minutes 34 seconds 857 msec
+    for lne in reporter.output_lines():
+        if lne.strip().startswith("TOTAL RUN TIME:"):
+            lne = lne.split(':')[1]
+            lne = re.sub(r'[a-zA-Z]','',lne)
+            d,h,m,s,ms = re.compile('\s+').split(lne.strip())
+            d,h,m,s,ms = float(d),float(h),float(m),float(s),float(ms)
+            return d*60*24 + h*60 + m + s/60.0 + ms/60.0 * 1/1000.0
+    assert(False)
+
+
 # Given an ORCAReporter, this function returns the NMR chemical shifts
 # in the form of a dictionary, i.e. {'atom-with-label': chemical-shift}.
 # Two different labelling schemes are available:
@@ -31,7 +46,6 @@ def chemical_shifts(reporter, label_type='natural'):
         #print(lne_count)
         if (lne.startswith('Nucleus') and lne.endswith(':')
             and not lne.startswith('Nucleus:')):
-            print(lne)
             key = None
             try:
                 _,key,_ = re.compile('\s+').split(lne)
