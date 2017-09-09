@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
+import re,os
 
 # Given an ORCAReporter, this function returns the total runtime of
 # the orca job in minutes.
@@ -77,7 +77,20 @@ def chemical_shifts(reporter, label_type='natural'):
 
 
 
-
+def orca_trj_to_xyz(trj_file):
+    pardir = os.path.dirname(trj_file)+os.path.sep
+    os.chdir(pardir)
+    with open(os.path.join(pardir,trj_file),'r') as fin:
+        xyz_str,count = "",0
+        for lne in fin:
+            if re.match('[0-9]+',lne.strip()):
+                if xyz_str:
+                    with open(os.path.join(pardir,'xyzs/xyz_{}.xyz'.format(count)),'w') as fout:
+                        fout.write(xyz_str)
+                count += 1
+                xyz_str = lne
+            else:
+                xyz_str += lne
 
 
 
