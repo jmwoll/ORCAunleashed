@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Jan Wollschläger <jmw.tau@gmail.com>
+# Copyright (C) 2017-2018  Jan Wollschläger <jmw.tau@gmail.com>
 # This file is part of ORCAunleashed.
 #
 # ORCAunleashed is free software: you can redistribute it and/or modify

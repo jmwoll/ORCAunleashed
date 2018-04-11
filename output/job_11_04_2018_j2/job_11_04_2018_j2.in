@@ -1,0 +1,12 @@
+! AM1  TightScf  cosmo(Acetonitrile) 
+
+%tddft
+	mode riints
+	NRoots 10
+	MaxDim 200
+	triplets false
+end
+
+*xyzfile 0 1 guess.xyz
+
+

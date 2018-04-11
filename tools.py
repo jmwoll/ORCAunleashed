@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Jan Wollschläger <jmw.tau@gmail.com>
+# Copyright (C) 2017-2018  Jan Wollschläger <jmw.tau@gmail.com>
 # This file is part of ORCAunleashed.
 #
 # ORCAunleashed is free software: you can redistribute it and/or modify
@@ -15,6 +15,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re,os
+
+try:
+    import numpy as np
+except:
+    print('failed loading numpy (which could be needed for some functionality)')
+try:
+    from matplotlib import pyplot as plt
+except:
+    print('failed loading matplotlib (which could be needed for some functionality)')
 
 # Given an ORCAReporter, this function returns the total runtime of
 # the orca job in minutes.
@@ -94,6 +103,49 @@ def orca_trj_to_xyz(trj_file):
 
 
 
+def uvvis_peaks_str(rep):
+    peaks_str = ""
+    parsing = False
+    sep_count = 0
+    for lne in rep.output().split('\n'):
+        lne = lne.strip()
+        if lne.startswith("ABSORPTION SPECTRUM VIA TRANSITION ELECTRIC DIPOLE MOMENTS"):
+            parsing = True
+        if parsing and lne:
+            if lne.startswith("----"):
+                sep_count += 1
+                if sep_count > 2:
+                    return peaks_str
+                continue
+            if sep_count == 2:
+                peaks_str += lne+"\n"
+
+    return None
+
+
+def uvvis_peaks(rep):
+    pxs,pys=[],[]
+    for lne in uvvis_peaks_str(rep).split('\n'):
+        lne = lne.replace('\t',' ').replace('  ',' ').replace('  ',' ')
+        lne = lne.split(' ')
+        if len(lne) != 8: continue
+        pxs.append(float(lne[2]))
+        pys.append(float(lne[3]))
+    return pxs,pys
+
+def uvvis_spec(rep,peak_width=None,show_plot=True):
+    if peak_width is None:
+        peak_width = 10 ## sensible guess for peak-width?
+    def gauss(x,a,b,c):
+        return a * np.e ** (- ((x - b)**2) / (2 * c**2))
+    pxs,pys = uvvis_peaks(rep)
+    cxs,cys = np.linspace(min(pxs)-50,max(pxs)+50,200),np.zeros(200)
+    for px,py in zip(pxs,pys):
+        a = py; b = px; c = peak_width
+        cys += np.array([gauss(cx,a,b,c) for cx in cxs])
+    if show_plot:
+        plt.plot(cxs,cys)
+    return cxs,cys
 
 
 
@@ -107,4 +159,6 @@ def orca_trj_to_xyz(trj_file):
 
 
 
-    #
+
+
+#

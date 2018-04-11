@@ -1,0 +1,12 @@
+! RKS BP86 RI SV(P)+  TightScf  cosmo(Acetonitrile) 
+%basis Aux  Auto end
+%tddft
+	mode riints
+	NRoots 10
+	MaxDim 200
+	triplets false
+end
+
+*xyzfile 0 1 guess.xyz
+
+
